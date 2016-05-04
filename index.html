@@ -14,14 +14,20 @@
 			.clearfix{
 				clear:left;
 			}
+			body{
+				background:#f0f0f0;
+			}
 		</style>
 	</head>
 	<body>
+
 		<div id="usernames"></div>
 		<div id="chatsystem">
 			<form id="usernamebox">
 				<span>type in your nickname</span>
-				<input type="text" id="nickname">
+				<input type="text" id="nickname"><br>
+				<span>type in your roomname</span>
+				<input type="text" id="roomname">
 				<input type="submit">
 			</form>
 			
@@ -42,7 +48,7 @@
 
 		<script>
 			jQuery(function($){
-				var socket = io.connect();
+				var socket = io.connect('/my-namespace');
 				var $messageForm = $('#send-message');
 				var $messageBox = $('#message');
 				var $chat = $('#chat');
@@ -50,16 +56,18 @@
 				var $usernamebox = $('#usernamebox');
 				var $usernames = $('#usernames');
 				var $nickname = $('#nickname');
+				var $roomname = $('#roomname');
 
 				$usernamebox.submit(function(e){
 					e.preventDefault();
-					socket.emit('set nickname',$nickname.val(),function(data){
+					socket.emit('set nickname',$nickname.val(),$roomname.val(),function(data){
 						console.log(data);
 						if(data){
 							$nickname.val('');
 							$usernamebox.hide();
 							$chatbox.show();
 							$usernames.show();
+
 						}else{
 							console.log('that user name is already taken');
 						}
@@ -81,7 +89,10 @@
 						html = html + data[index] + '<br/>';
 					});
 					$usernames.html(html);
+					console.log(data);
+					$chat.append(`${data[data.length - 1]} entered the conversation <br/>`);
 				});
+
 				socket.on('new message',function(data){
 					$chat.append(`${data.name}: ${data.msg}<br/>`);
 					console.log(data);
