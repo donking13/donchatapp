@@ -8,7 +8,7 @@
 				margin:0 auto;
 				padding:24px;
 			}
-			#chatbox,#usernames{
+			#chatbox,#usernamebox{
 				 display:none; 
 			}
 			body{
@@ -21,47 +21,41 @@
 	</head>
 	<body>
 		
-		<div id="chatsystem">
-			<div id="roombox">
+		<div id="chatsystem" >
+			<form id="roombox">
 				<span>type in your roomname</span>
 				<input type="text" id="roomname">
-				<button id="roomboxBtn" class="button">submit</button>
-			</div>
-<!-- 
-			<div id="usernamebox">
+				<button type="submit" class="button">submit</button>
+			</form>
+
+			<form id="usernamebox">
 				<span>type in your nickname</span>
 				<input type="text" id="nickname"><br>
-				<button id="usernameBtn">submit</button>
-			</div> -->
+				<button type="submit" class="button">submit</button>
+			</form>
 			
 			<div id="chatbox" class="row">
-				<div class="columns">
-					<div id="usernames"></div>
-				</div>
-				<div class="columns">
 					
 					<div class="row">
 						<div class="columns">
 							<div id="chat"></div>
 						</div>
 						<div class="columns">
-							<div id="send-message">
+							<form id="send-message">
 								<input type="text" id="message" size="35">
 								<div class="row">
 									<div class="columns text-left"><button id="chatboxBtn" class="button">submit</button></div>
 									<div class="columns text-right"><button id="leaveRoom" class="button alert" data-room="">leave</button></div>
 								</div>
-								
-								
-							</div>
+							</form>
+						</div>
+						<div class="columns">
+							<div id="usernames" data-room></div>
 						</div>
 					</div>
-					
-					
-				</div>				
+							
 			</div>
 		</div>
-		<div class="clearfix"></div>
 		
 		
 		<!--== <script src="node_modules/jquery/dist/jquery.js"></script> ==-->
@@ -73,32 +67,54 @@
 		  $message = $('#message'),
 		  $room = $('#roomname'),
 		  $roombox = $('#roombox'),
-		  $message = $('#message'),
-		  $messagebox = $('#chatbox #chatboxBtn');
-		  $chat = $('#chat');
-		  $chatbox = $('#chatbox');
-		  $leaveRoom = $('#leaveRoom');
+		  $messagebox = $('#send-message'),
+		  $chat = $('#chat'),
+		  $chatbox = $('#chatbox'),
+		  $leaveRoom = $('#leaveRoom'),
+		  $nickname = $('#nickname'),
+		  $usernamebox = $('#usernamebox'),
+		  $usernames = $('#usernames');
 
-		 var roomcurrent;
+		  var roomcurrent;
 
 		  $leaveRoom.click(function(){
 		  	var x = $leaveRoom.attr('data-room');
+		  	var user = $leaveRoom.attr('data-user');
 		  	console.log(x);
-		  	socket.emit('leave room',x);
+		  	socket.emit('leave room',{room:x,user:user});
 		  	$chatbox.hide();
 		  	$roombox.show();
-		  	$chat.html('');
+		  	
 		  });
 
-		  $roombox.on('click','#roomboxBtn',()=> {
+		  $roombox.on('submit',(e)=> {
+		  	e.preventDefault();
 		  	roomcurrent = $room.val();
-		  	$chatbox.show();
 		  	$roombox.hide();
+		  	$usernamebox.show();
 		  	socket.emit('switch room',roomcurrent);
 		  	$leaveRoom.attr('data-room',roomcurrent);
 		  });
 
-		  $messagebox.click(()=>{
+
+		  $usernamebox.on('submit',(e)=>{
+		  	e.preventDefault();
+		  	
+		  	socket.emit('new user',{users:$nickname.val(),room:roomcurrent},function(callback){
+		  		console.log(callback);
+		  		if(callback){
+		  			console.log('try again!');
+
+		  		}else{
+		  			$chatbox.show();
+		  			$usernamebox.hide();
+		  			$leaveRoom.attr('data-user',$nickname.val());
+		  		}
+		  	});
+		  });
+
+		  $messagebox.on('submit',(e)=>{
+		  	e.preventDefault();
 		  	var a = $message.val();
 		  	console.log(a);
 		  	socket.emit('send message',a,roomcurrent);
@@ -107,7 +123,23 @@
 		  
 
 		  socket.on('new message',function(data){
-		  	$chat.append(`<p>${data}</p>`);
+		  	$chat.append(`<p>${data.user} : ${data.msg}</p>`);
+		  });
+
+		  socket.on('usernames',function(data,currentRoomPerUser){
+		   var html = '';
+		 	
+		 	console.log(`current room from username::: ${currentRoomPerUser}`)
+
+		  	  $.each(data,function(index,value){
+		  	  	html = `${html} <p>${value}</p>`;
+		  	  });
+
+		  	/// TODO: fix the room assignments 
+		  	if(currentRoomPerUser == roomcurrent){
+		  		$usernames.html(html);
+		  	}	
+		  	
 		  });
 
 		  socket.on('some event',function(data){
