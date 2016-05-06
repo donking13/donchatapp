@@ -2,9 +2,9 @@
 	<head>
 		<title>chat</title>
 		<style>
-			#chatbox,#usernames{
+			/* #chatbox,#usernames{
 				 display:none; 
-			}
+			} */
 			#usernames,#chatsystem{
 				float:left;
 			}
@@ -23,20 +23,24 @@
 
 		<div id="usernames"></div>
 		<div id="chatsystem">
+			<div id="roombox">
+				<span>type in your roomname</span>
+				<input type="text" id="roomname">
+				<button id="roomboxBtn">submit</button>
+			</div>
+
 			<form id="usernamebox">
 				<span>type in your nickname</span>
 				<input type="text" id="nickname"><br>
-				<!-- <span>type in your roomname</span>
-				<input type="text" id="roomname"> -->
 				<input type="submit">
 			</form>
 			
 			<div id="chatbox">
 				<div id="chat"></div>
-				<form id="send-message">
+				<div id="send-message">
 					<input type="text" id="message" size="35">
-					<input type="submit">
-				</form>
+					<button id="chatboxBtn">submit</button>
+				</div>
 			</div>
 		</div>
 		<div class="clearfix"></div>
@@ -47,67 +51,37 @@
 		<script src="/socket.io/socket.io.js"></script>
 
 		<script>
-			jQuery(function($){
-				var socket = io.connect();
-				var $messageForm = $('#send-message');
-				var $messageBox = $('#message');
-				var $chat = $('#chat');
-				var $chatbox = $('#chatbox');
-				var $usernamebox = $('#usernamebox');
-				var $usernames = $('#usernames');
-				var $nickname = $('#nickname');
-				var $roomname = $('#roomname');
-
-				$usernamebox.submit(function(e){
-					e.preventDefault();
-					socket.emit('set nickname',$nickname.val(),$roomname.val(),function(data){
-						console.log(data);
-						if(data){
-							$nickname.val('');
-							$usernamebox.hide();
-							$chatbox.show();
-							$usernames.show();
-
-						}else{
-							console.log('that user name is already taken');
-						}
-					});
-					
-				});
+		  var socket = io(),
+		  $message = $('#message'),
+		  $room = $('#roomname'),
+		  $roombox = $('#roombox #roomboxBtn'),
+		  $message = $('#message'),
+		  $messagebox = $('#chatbox #chatboxBtn');
 
 
-				$messageForm.submit(function(e){
-					e.preventDefault();
-					socket.emit('send message',$messageBox.val());
-					$messageBox.val('');
-					
-				});
+		  var defaultRoom = '123abc';
 
-				$('.user').on('click',function(){
-						var a = $(this).attr('data-name');
-						console.log(a);
-						socket.emit('switch room',a);
-						
-				});
+		  socket.emit('switch room',defaultRoom);
 
-				socket.on('usernames', function(data){
-					var html = '';
-					$.each(data,function(index,value){
-						console.log(index + ': ' + value );
-						html = `${html} <button class='user' data-name='${data[index]}'>${data[index]}</button><br/>`;
-					});
-					$usernames.html(html);
-					console.log(data);
-					//$chat.append(`${data[data.length - 1]} entered the conversation <br/>`);
+		  $roombox.click(()=> {
+		  	var a = $room.val();
+		  	console.log(a);
+		  	socket.emit('switch room',a);
+		  });
 
-				});
+		  $messagebox.click(()=>{
+		  	var a = $message.val();
+		  	console.log(a);
+		  	socket.emit('send message',a);
+		  });
+		  	
+		  socket.on('new message',function(data){
+		  	console.log(data);
+		  });
 
-				socket.on('new message',function(data){
-					$chat.append(`${data.name}: ${data.msg}<br/>`);
-					console.log(data);
-				});
-
-			});
+		  socket.on('some event',function(data){
+		 	console.log(data);
+		 	});
 		</script>
 	</body>
 </html>
