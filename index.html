@@ -26,8 +26,8 @@
 			<form id="usernamebox">
 				<span>type in your nickname</span>
 				<input type="text" id="nickname"><br>
-				<span>type in your roomname</span>
-				<input type="text" id="roomname">
+				<!-- <span>type in your roomname</span>
+				<input type="text" id="roomname"> -->
 				<input type="submit">
 			</form>
 			
@@ -48,7 +48,7 @@
 
 		<script>
 			jQuery(function($){
-				var socket = io.connect('/my-namespace');
+				var socket = io.connect();
 				var $messageForm = $('#send-message');
 				var $messageBox = $('#message');
 				var $chat = $('#chat');
@@ -75,6 +75,7 @@
 					
 				});
 
+
 				$messageForm.submit(function(e){
 					e.preventDefault();
 					socket.emit('send message',$messageBox.val());
@@ -82,21 +83,30 @@
 					
 				});
 
+				$('.user').on('click',function(){
+						var a = $(this).attr('data-name');
+						console.log(a);
+						socket.emit('switch room',a);
+						
+				});
+
 				socket.on('usernames', function(data){
 					var html = '';
 					$.each(data,function(index,value){
 						console.log(index + ': ' + value );
-						html = html + data[index] + '<br/>';
+						html = `${html} <button class='user' data-name='${data[index]}'>${data[index]}</button><br/>`;
 					});
 					$usernames.html(html);
 					console.log(data);
-					$chat.append(`${data[data.length - 1]} entered the conversation <br/>`);
+					//$chat.append(`${data[data.length - 1]} entered the conversation <br/>`);
+
 				});
 
 				socket.on('new message',function(data){
 					$chat.append(`${data.name}: ${data.msg}<br/>`);
 					console.log(data);
 				});
+
 			});
 		</script>
 	</body>
