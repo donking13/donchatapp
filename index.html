@@ -57,11 +57,11 @@
 		  $roombox = $('#roombox #roomboxBtn'),
 		  $message = $('#message'),
 		  $messagebox = $('#chatbox #chatboxBtn');
+		  $chat = $('#chat');
 
+		  //var defaultRoom = '123abc';
 
-		  var defaultRoom = '123abc';
-
-		  socket.emit('switch room',defaultRoom);
+		 // socket.emit('switch room',defaultRoom);
 
 		  $roombox.click(()=> {
 		  	var a = $room.val();
@@ -73,10 +73,12 @@
 		  	var a = $message.val();
 		  	console.log(a);
 		  	socket.emit('send message',a);
+		  	$message.val('');
 		  });
 		  	
 		  socket.on('new message',function(data){
 		  	console.log(data);
+		  	$chat.append(`<p>${data}<p>`);
 		  });
 
 		  socket.on('some event',function(data){

@@ -27,6 +27,7 @@ var express = require('express'),
 	  
 	  socket.on('send message',function(data){
 	  	socket.emit('new message',data);
+	  	console.log(data);
 	  });
 
 	});
