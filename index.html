@@ -1,46 +1,64 @@
 <html>
 	<head>
 		<title>chat</title>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.2.1/foundation-flex.min.css">
 		<style>
-			/* #chatbox,#usernames{
+			#chatsystem{
+				width:760px;
+				margin:0 auto;
+				padding:24px;
+			}
+			#chatbox,#usernames{
 				 display:none; 
-			} */
-			#usernames,#chatsystem{
-				float:left;
-			}
-			#usernames{
-				margin-right:24px;
-			}
-			.clearfix{
-				clear:left;
 			}
 			body{
 				background:#f0f0f0;
 			}
+			#chat p:nth-child(odd){
+				color:red;
+			}
 		</style>
 	</head>
 	<body>
-
-		<div id="usernames"></div>
+		
 		<div id="chatsystem">
 			<div id="roombox">
 				<span>type in your roomname</span>
 				<input type="text" id="roomname">
-				<button id="roomboxBtn">submit</button>
+				<button id="roomboxBtn" class="button">submit</button>
 			</div>
-
-			<form id="usernamebox">
+<!-- 
+			<div id="usernamebox">
 				<span>type in your nickname</span>
 				<input type="text" id="nickname"><br>
-				<input type="submit">
-			</form>
+				<button id="usernameBtn">submit</button>
+			</div> -->
 			
-			<div id="chatbox">
-				<div id="chat"></div>
-				<div id="send-message">
-					<input type="text" id="message" size="35">
-					<button id="chatboxBtn">submit</button>
+			<div id="chatbox" class="row">
+				<div class="columns">
+					<div id="usernames"></div>
 				</div>
+				<div class="columns">
+					
+					<div class="row">
+						<div class="columns">
+							<div id="chat"></div>
+						</div>
+						<div class="columns">
+							<div id="send-message">
+								<input type="text" id="message" size="35">
+								<div class="row">
+									<div class="columns text-left"><button id="chatboxBtn" class="button">submit</button></div>
+									<div class="columns text-right"><button id="leaveRoom" class="button alert" data-room="">leave</button></div>
+								</div>
+								
+								
+							</div>
+						</div>
+					</div>
+					
+					
+				</div>				
 			</div>
 		</div>
 		<div class="clearfix"></div>
@@ -54,31 +72,42 @@
 		  var socket = io(),
 		  $message = $('#message'),
 		  $room = $('#roomname'),
-		  $roombox = $('#roombox #roomboxBtn'),
+		  $roombox = $('#roombox'),
 		  $message = $('#message'),
 		  $messagebox = $('#chatbox #chatboxBtn');
 		  $chat = $('#chat');
+		  $chatbox = $('#chatbox');
+		  $leaveRoom = $('#leaveRoom');
 
-		  //var defaultRoom = '123abc';
+		 var roomcurrent;
 
-		 // socket.emit('switch room',defaultRoom);
+		  $leaveRoom.click(function(){
+		  	var x = $leaveRoom.attr('data-room');
+		  	console.log(x);
+		  	socket.emit('leave room',x);
+		  	$chatbox.hide();
+		  	$roombox.show();
+		  	$chat.html('');
+		  });
 
-		  $roombox.click(()=> {
-		  	var a = $room.val();
-		  	console.log(a);
-		  	socket.emit('switch room',a);
+		  $roombox.on('click','#roomboxBtn',()=> {
+		  	roomcurrent = $room.val();
+		  	$chatbox.show();
+		  	$roombox.hide();
+		  	socket.emit('switch room',roomcurrent);
+		  	$leaveRoom.attr('data-room',roomcurrent);
 		  });
 
 		  $messagebox.click(()=>{
 		  	var a = $message.val();
 		  	console.log(a);
-		  	socket.emit('send message',a);
+		  	socket.emit('send message',a,roomcurrent);
 		  	$message.val('');
 		  });
-		  	
+		  
+
 		  socket.on('new message',function(data){
-		  	console.log(data);
-		  	$chat.append(`<p>${data}<p>`);
+		  	$chat.append(`<p>${data}</p>`);
 		  });
 
 		  socket.on('some event',function(data){

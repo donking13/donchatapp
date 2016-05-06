@@ -18,15 +18,29 @@ var express = require('express'),
 
 	io.on('connection', function(socket){
 
+
+
+
 	  socket.on('switch room',function(room){
-	  	socket.leave(room);
+	  	//socket.leave(room);
 	  	socket.join(room);
 	  	console.log(room);
 	  	io.to(room).emit('some event',`hey! room ${room}` );
 	  });
 	  
-	  socket.on('send message',function(data){
-	  	socket.emit('new message',data);
+	  socket.on('leave room',function(room){
+	  	socket.leave(room);
+	  	//socket.join(room);
+	  	console.log(room);
+	  	io.to(room).emit('some event',`leave! room ${room}` );
+	  });
+
+
+	  socket.on('send message',function(data, roomcurrent){
+	  	//io.emit('new message',data);
+	  	io.to(roomcurrent).emit('some event',`hey! room ${roomcurrent}` );
+	  	//socket.broadcast.to(roomcurrent).emit('new message',data);
+	  	io.in(roomcurrent).emit('new message',data);
 	  	console.log(data);
 	  });
 
